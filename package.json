@@ -2,12 +2,20 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev2": "next dev -p 8080",
     "build": "next build",
     "start": "next start"
   },
   "dependencies": {
     "next": "latest",
+    "random-words": "^1.1.2",
     "react": "17.0.2",
-    "react-dom": "17.0.2"
+    "react-dom": "17.0.2",
+    "styled-components": "^5.3.5"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.7",
+    "postcss": "^8.4.14",
+    "tailwindcss": "^3.1.1"
   }
 }
