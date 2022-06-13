@@ -2,6 +2,10 @@ import { useState, useEffect } from "react";
 import Head from "next/head";
 import styled from "styled-components";
 import randomWords from "random-words";
+import Timer from "../components/Timer";
+import Scoreboard from "../components/Scoreboard";
+import StartInstructions from "../components/StartInstructions";
+import WordsDisplay from "../components/WordsDisplay";
 
 const MainComponent = styled.main`
   display: flex;
@@ -10,7 +14,6 @@ const MainComponent = styled.main`
   height: 100vh;
   background: #3a5369;
   color: white;
-  /* overflow: hidden; */
 `;
 
 const Title = styled.h1`
@@ -36,10 +39,13 @@ export default function Home() {
   const [completed, setCompleted] = useState(false);
   const [currCharIndex, setCurrCharIndex] = useState(-1);
   const [currChar, setCurrChar] = useState("");
+
+  //function to generate words
   const generateWords = () => {
     return new Array(NUMB_OF_WORDS).fill(null).map(() => randomWords());
   };
 
+  //function to start game
   const countTimer = () => {
     setStart(true);
     setCompleted(false);
@@ -47,6 +53,7 @@ export default function Home() {
     setCorrect(0);
     setWrong(0);
     setCurrentIndex(0);
+    setCurrChar("");
 
     let interval = setInterval(() => {
       setCountdown((prev) => {
@@ -63,6 +70,7 @@ export default function Home() {
     }, 1000);
   };
 
+  //function to handle what is typed
   function handleKeydown({ keyCode, key }) {
     if (keyCode === 32) {
       checkMatch();
@@ -75,6 +83,7 @@ export default function Home() {
     }
   }
 
+  //function to check match of words
   const checkMatch = () => {
     const wordsToCheck = words[currentIndex];
     const isMatch = wordsToCheck === currentValue.trim();
@@ -85,10 +94,12 @@ export default function Home() {
     }
   };
 
+  //generate new words everytime game starts
   useEffect(() => {
     setWords(generateWords());
   }, []);
 
+  //to get classname attribute
   function getCharClass(wordidx, charIdx, char) {
     if (
       wordidx === currentIndex &&
@@ -118,105 +129,31 @@ export default function Home() {
           <Title className="">Typing Test Game</Title>
 
           {/* timer */}
-          <div className="w-52 flex justify-center mx-auto items-center">
-            <div className=" w-32 h-16 flex align-middle justify-center bg-[#243441] mx-auto mb-4 text-5xl">
-              <h1 className="m-auto font-black">{countdown}</h1>
-            </div>
-            <p className="text-lg px-2 font-bold ">Seconds</p>
-          </div>
+          <Timer countdown={countdown} />
           <div className="w-3/5 rounded-lg p-6 center bg-[#243441] shadow-md mx-auto">
             {!start && (
               <div className="mx-auto w-3/4 text-center">
                 {completed && (
-                  <>
-                    <h2 className="text-center text-3xl font-black underline mb-6">
-                      Scores
-                    </h2>
-                    <div className="flex justify-between mx-auto text-sm mb-8 ">
-                      <div className="px-6 py-4 border w-56 rounded-md">
-                        <p className="font-bold text-lg">Points</p>
-                        <p className="italic text-base">
-                          {correct + " / " + NUMB_OF_WORDS}
-                        </p>
-                      </div>
-                      <div className="px-6 py-4 border w-56 rounded-md">
-                        <p className="font-bold text-lg">Accuracy</p>
-                        <p className="italic text-base">
-                          {Math.round((correct / NUMB_OF_WORDS) * 100) || 0} %
-                        </p>
-                      </div>
-                    </div>
-                  </>
+                  <Scoreboard correct={correct} NUMB_OF_WORDS={NUMB_OF_WORDS} />
                 )}
 
-                <p className="text-sm mb-4">
-                  <b className="text-lg underline">How to play: </b> <br />
-                  Choose a time duration and start typing the words as soon as
-                  the timer start, the faster you are the higher your accuracy
-                  points.
-                </p>
-                <div>
-                  <p className="font-bold text-lg">Select Timer in Seconds:</p>
-                  <button
-                    className="border py-1 px-3 bg-stone-500 my-4 mx-2 rounded"
-                    onClick={() => setCountdown(60)}
-                    disabled={countdown === 60}
-                  >
-                    60 Seconds
-                  </button>
-                  <button
-                    className="border py-1 px-3 bg-stone-500 my-4 mx-2 rounded"
-                    onClick={() => setCountdown(120)}
-                    disabled={countdown === 120}
-                  >
-                    120 Seconds
-                  </button>
-                  <button
-                    className="border py-1 px-3 bg-stone-500 my-4 mx-2 rounded"
-                    onClick={() => setCountdown(180)}
-                    disabled={countdown === 180}
-                  >
-                    180 Seconds
-                  </button>
-                </div>
-                <p className="text-lg mb-4">
-                  {completed
-                    ? "Click to restart the game"
-                    : "Click to Start the game"}
-                </p>
-                <button
-                  className="mx-auto rounded border w-32 text-sm p-2"
-                  onClick={countTimer}
-                  disabled={countdown === 0}
-                >
-                  {completed ? "Restart" : "Start"}
-                </button>
+                <StartInstructions
+                  countdown={countdown}
+                  completed={completed}
+                  setCountdown={setCountdown}
+                  countTimer={countTimer}
+                />
               </div>
             )}
 
             {start && (
-              <div>
-                {words.map((word, i) => (
-                  <span span key={i}>
-                    <span className="text-sm">
-                      {word.split("").map((char, indx) => (
-                        <span
-                          className={getCharClass(i, indx, char)}
-                          key={indx}
-                        >
-                          {char}
-                        </span>
-                      ))}
-                    </span>
-                    <span> </span>
-                  </span>
-                ))}
-              </div>
+              <WordsDisplay words={words} getCharClass={getCharClass} />
             )}
           </div>
 
+          {/* Input field */}
           {start && (
-            <div className="w-3/4 mx-auto text-sm">
+            <div className="w-2/4 mx-auto text-sm">
               <input
                 type="text"
                 disabled={!start}
