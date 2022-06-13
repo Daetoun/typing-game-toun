@@ -23,8 +23,8 @@ const Title = styled.h1`
 `;
 
 export default function Home() {
-  const NUMB_OF_WORDS = 200;
-  const SECONDS = 20;
+  const NUMB_OF_WORDS = 150;
+  const SECONDS = 0;
 
   const [words, setWords] = useState([]);
   const [start, setStart] = useState(false);
@@ -34,7 +34,8 @@ export default function Home() {
   const [correct, setCorrect] = useState(0);
   const [wrong, setWrong] = useState(0);
   const [completed, setCompleted] = useState(false);
-
+  const [currCharIndex, setCurrCharIndex] = useState(-1);
+  const [currChar, setCurrChar] = useState("");
   const generateWords = () => {
     return new Array(NUMB_OF_WORDS).fill(null).map(() => randomWords());
   };
@@ -42,7 +43,6 @@ export default function Home() {
   const countTimer = () => {
     setStart(true);
     setCompleted(false);
-    setCountdown(SECONDS);
     setWords(generateWords());
     setCorrect(0);
     setWrong(0);
@@ -63,13 +63,15 @@ export default function Home() {
     }, 1000);
   };
 
-  console.log(completed);
-
-  function handleKeydown({ keyCode }) {
+  function handleKeydown({ keyCode, key }) {
     if (keyCode === 32) {
       checkMatch();
       setCurrentValue("");
       setCurrentIndex(currentIndex + 1);
+      setCurrCharIndex(-1);
+    } else {
+      setCurrChar(key);
+      setCurrCharIndex(currCharIndex + 1);
     }
   }
 
@@ -87,6 +89,23 @@ export default function Home() {
     setWords(generateWords());
   }, []);
 
+  function getCharClass(wordidx, charIdx, char) {
+    if (
+      wordidx === currentIndex &&
+      charIdx === currCharIndex &&
+      currChar &&
+      !completed
+    ) {
+      if (char === currChar) {
+        return "bg-green-600";
+      } else {
+        return "bg-red-600";
+      }
+    } else {
+      return "";
+    }
+  }
+
   return (
     <div className="container">
       <Head>
@@ -99,49 +118,76 @@ export default function Home() {
           <Title className="">Typing Test Game</Title>
 
           {/* timer */}
-          <div className="w-40 flex justify-center mx-auto items-center">
-            <div className="w-20 h-20 flex align-middle justify-center bg-[#243441] mx-auto mb-4 text-5xl">
+          <div className="w-52 flex justify-center mx-auto items-center">
+            <div className=" w-32 h-16 flex align-middle justify-center bg-[#243441] mx-auto mb-4 text-5xl">
               <h1 className="m-auto font-black">{countdown}</h1>
             </div>
-            <p className="text-lg px-2 font-bold">Seconds</p>
+            <p className="text-lg px-2 font-bold ">Seconds</p>
           </div>
           <div className="w-3/5 rounded-lg p-6 center bg-[#243441] shadow-md mx-auto">
             {!start && (
-              <div className="mx-auto w-2/4 text-center">
+              <div className="mx-auto w-3/4 text-center">
                 {completed && (
                   <>
                     <h2 className="text-center text-3xl font-black underline mb-6">
                       Scores
                     </h2>
-                    <div className="flex justify-between mx-auto text-sm mb-8">
-                      <div className="px-6 py-4 border w-56">
-                        <p className="font-bold text-lg">Words per minute</p>
-                        <p className="italic text-base">{correct}</p>
+                    <div className="flex justify-between mx-auto text-sm mb-8 ">
+                      <div className="px-6 py-4 border w-56 rounded-md">
+                        <p className="font-bold text-lg">Points</p>
+                        <p className="italic text-base">
+                          {correct + " / " + NUMB_OF_WORDS}
+                        </p>
                       </div>
-                      <div className="px-6 py-4 border w-56">
+                      <div className="px-6 py-4 border w-56 rounded-md">
                         <p className="font-bold text-lg">Accuracy</p>
                         <p className="italic text-base">
-                          {Math.round((correct / (correct + wrong)) * 100) || 0}{" "}
-                          %
+                          {Math.round((correct / NUMB_OF_WORDS) * 100) || 0} %
                         </p>
                       </div>
                     </div>
                   </>
                 )}
+
                 <p className="text-sm mb-4">
                   <b className="text-lg underline">How to play: </b> <br />
-                  Start typing the words as soon as the timer start, the faster
-                  you are the higher your accuracy points.
+                  Choose a time duration and start typing the words as soon as
+                  the timer start, the faster you are the higher your accuracy
+                  points.
                 </p>
-
+                <div>
+                  <p className="font-bold text-lg">Select Timer in Seconds:</p>
+                  <button
+                    className="border py-1 px-3 bg-stone-500 my-4 mx-2 rounded"
+                    onClick={() => setCountdown(60)}
+                    disabled={countdown === 60}
+                  >
+                    60 Seconds
+                  </button>
+                  <button
+                    className="border py-1 px-3 bg-stone-500 my-4 mx-2 rounded"
+                    onClick={() => setCountdown(120)}
+                    disabled={countdown === 120}
+                  >
+                    120 Seconds
+                  </button>
+                  <button
+                    className="border py-1 px-3 bg-stone-500 my-4 mx-2 rounded"
+                    onClick={() => setCountdown(180)}
+                    disabled={countdown === 180}
+                  >
+                    180 Seconds
+                  </button>
+                </div>
                 <p className="text-lg mb-4">
                   {completed
                     ? "Click to restart the game"
-                    : "Click to Start the typing game"}
+                    : "Click to Start the game"}
                 </p>
                 <button
                   className="mx-auto rounded border w-32 text-sm p-2"
                   onClick={countTimer}
+                  disabled={countdown === 0}
                 >
                   {completed ? "Restart" : "Start"}
                 </button>
@@ -154,7 +200,12 @@ export default function Home() {
                   <span span key={i}>
                     <span className="text-sm">
                       {word.split("").map((char, indx) => (
-                        <span key={indx}>{char}</span>
+                        <span
+                          className={getCharClass(i, indx, char)}
+                          key={indx}
+                        >
+                          {char}
+                        </span>
                       ))}
                     </span>
                     <span> </span>

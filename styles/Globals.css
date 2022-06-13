@@ -9,3 +9,10 @@
 body {
   background-color: #3a5369;
 }
+
+button:disabled {
+  background-color: darkgrey;
+  border: none;
+  color: gainsboro;
+  cursor: not-allowed;
+}
